@@ -1,51 +1,102 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Space-XMD — Deploy on Render</title>
-  <link rel="stylesheet" href="style.css" />
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Deploy My Bot</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: linear-gradient(135deg, #1d2b64, #f8cdda);
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin: 0;
+    }
+    .container {
+      background: white;
+      padding: 2rem;
+      border-radius: 12px;
+      box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+      text-align: center;
+      width: 350px;
+    }
+    h1 {
+      margin-bottom: 1rem;
+      font-size: 1.5rem;
+      color: #333;
+    }
+    input {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 1rem;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 1rem;
+    }
+    button {
+      background: #4cafef;
+      color: white;
+      border: none;
+      padding: 10px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 1rem;
+      transition: background 0.3s ease;
+    }
+    button:hover {
+      background: #007bff;
+    }
+    #output {
+      margin-top: 1rem;
+      font-size: 0.9rem;
+      text-align: left;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      color: #444;
+    }
+  </style>
 </head>
 <body>
-  <main class="container">
-    <header>
-      <h1>Space-XMD — Quick Deploy</h1>
-      <p class="muted">Enter your GitHub username, confirm you've forked <strong>Space-XMD</strong>, upload <code>creds.json</code>, then deploy to Render.</p>
-    </header>
+  <div class="container">
+    <h1>🚀 Deploy Your Bot</h1>
+    <p>Enter your GitHub username to fork & deploy:</p>
+    <input type="text" id="username" placeholder="e.g. johndoe" />
+    <button onclick="deploy()">Deploy</button>
+    <div id="output"></div>
+  </div>
 
-    <section class="card">
-      <label for="username">GitHub Username</label>
-      <div class="inline">
-        <input id="username" placeholder="github username (e.g. your-user)" />
-        <button id="checkBtn" class="primary">Check Fork</button>
-      </div>
-      <p id="checkMessage" class="muted"></p>
-    </section>
+  <script>
+    async function deploy() {
+      const username = document.getElementById("username").value.trim();
+      const output = document.getElementById("output");
+      if (!username) {
+        output.textContent = "❌ Please enter a GitHub username.";
+        return;
+      }
 
-    <section class="card" id="deployCard" hidden>
-      <h3>Ready to Deploy</h3>
-      <p class="muted">Fork verified. Upload your <code>creds.json</code> then press <em>Deploy</em>.</p>
+      output.textContent = "⏳ Deploying... please wait.";
 
-      <div class="form-row">
-        <input id="credsFile" type="file" accept=".json" />
-      </div>
-
-      <div class="form-row">
-        <button id="deployBtn" class="accent">Deploy to Render</button>
-      </div>
-    </section>
-
-    <section class="card" id="logsCard" hidden>
-      <h3>Deployment Logs</h3>
-      <div id="terminal" class="terminal">No logs yet.</div>
-      <div class="form-row">
-        <button id="stopLogs" class="small">Stop Logs</button>
-      </div>
-    </section>
-
-    <footer class="muted small">Built by Iconic Tech • Space-XMD</footer>
-  </main>
-
-  <script src="script.js"></script>
+      try {
+        const res = await fetch("/deploy", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ username })
+        });
+        const data = await res.json();
+        if (data.success) {
+          output.innerHTML =
+            "✅ Bot deployed successfully!<br><br>" +
+            "<b>Render Service:</b><br>" +
+            JSON.stringify(data.render, null, 2);
+        } else {
+          output.textContent = "❌ Failed: " + (data.error || "Unknown error");
+        }
+      } catch (err) {
+        output.textContent = "⚠️ Error: " + err.message;
+      }
+    }
+  </script>
 </body>
 </html>

@@ -1,114 +1,80 @@
-// server.js
-require("dotenv").config();
-const express = require("express");
-const axios = require("axios");
-const bodyParser = require("body-parser");
-const path = require("path");
+import express from "express";
+import axios from "axios";
+import dotenv from "dotenv";
+
+dotenv.config();
 
 const app = express();
+app.use(express.json());
+
 const PORT = process.env.PORT || 3000;
+const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
+const RENDER_API_KEY = process.env.RENDER_API_KEY;
+const BASE_REPO = `${process.env.OWNER}/${process.env.REPO_NAME}`;
+const REPO_NAME = process.env.REPO_NAME;
 
-// Render API
-const RENDER_API = "https://api.render.com/v1/services";
-const RENDER_KEY = process.env.RENDER_API_KEY;
-
-// GitHub
-const OWNER = "iconic05"; // your GitHub owner
-const REPO_NAME = "Space-XMD"; // repo to check forks
-
-// Middleware
-app.use(bodyParser.json());
-app.use(express.static(path.join(__dirname, "public"))); // serve frontend
-
-// --- Helper: Check GitHub repo existence & fork status ---
-async function checkFork(username) {
-  try {
-    const url = `https://api.github.com/repos/${username}/${REPO_NAME}`;
-    const headers = { "User-Agent": "Space-XMD-Deployer" };
-
-    if (process.env.GITHUB_TOKEN) {
-      headers["Authorization"] = `token ${process.env.GITHUB_TOKEN}`;
-    }
-
-    const res = await axios.get(url, { headers });
-    const data = res.data;
-
-    const isFork =
-      !!data.fork &&
-      data.parent &&
-      data.parent.full_name &&
-      data.parent.full_name.toLowerCase() ===
-        `${OWNER.toLowerCase()}/${REPO_NAME.toLowerCase()}`;
-
-    return { exists: true, fork: isFork, repoData: data };
-  } catch (err) {
-    if (err.response && err.response.status === 404) {
-      return { exists: false, fork: false };
-    }
-    console.error(
-      "GitHub API error:",
-      err.response ? err.response.data : err.message
-    );
-    throw new Error("GitHub API error");
-  }
-}
-
-// --- API: Check fork ---
-app.post("/check-fork", async (req, res) => {
+// Deploy endpoint
+app.post("/deploy", async (req, res) => {
   const { username } = req.body;
   if (!username) return res.status(400).json({ error: "Username required" });
 
   try {
-    const result = await checkFork(username);
-    res.json(result);
-  } catch (err) {
-    res.status(500).json({ error: "Server error while checking GitHub." });
-  }
-});
+    // STEP 1: check if fork exists
+    const forkUrl = `https://api.github.com/repos/${username}/${REPO_NAME}`;
+    let forkExists = true;
 
-// --- API: Deploy on Render ---
-app.post("/deploy", async (req, res) => {
-  const { repoUrl } = req.body;
-  if (!repoUrl)
-    return res.status(400).json({ error: "Repository URL required" });
+    try {
+      await axios.get(forkUrl, {
+        headers: { Authorization: `token ${GITHUB_TOKEN}` }
+      });
+    } catch {
+      forkExists = false;
+    }
 
-  try {
-    const response = await axios.post(
-      RENDER_API,
+    // STEP 2: fork repo if missing
+    if (!forkExists) {
+      console.log(`Forking repo for ${username}...`);
+      await axios.post(
+        `https://api.github.com/repos/${BASE_REPO}/forks`,
+        {},
+        { headers: { Authorization: `token ${GITHUB_TOKEN}` } }
+      );
+
+      // wait a bit for GitHub to process fork
+      await new Promise((resolve) => setTimeout(resolve, 5000));
+    }
+
+    // STEP 3: create Render service from fork
+    console.log(`Creating Render service for ${username}...`);
+    const createService = await axios.post(
+      "https://api.render.com/v1/services",
       {
-        serviceDetails: {
-          name: `bot-${Date.now()}`,
-          repo: repoUrl,
+        service: {
+          name: `${username}-bot`,
+          repo: `https://github.com/${username}/${REPO_NAME}.git`,
           branch: "main",
-          env: "node",
+          environment: "node",
           plan: "free",
-          buildCommand: "npm install",
-          startCommand: "node server.js",
-        },
+          region: "oregon"
+        }
       },
-      {
-        headers: {
-          Authorization: `Bearer ${RENDER_KEY}`,
-          "Content-Type": "application/json",
-        },
-      }
+      { headers: { Authorization: `Bearer ${RENDER_API_KEY}` } }
     );
 
-    res.json({
+    return res.json({
       success: true,
-      message: "Deployment started!",
-      data: response.data,
+      message: "Bot deployed successfully!",
+      render: createService.data
     });
   } catch (err) {
-    console.error(
-      "Render API error:",
-      err.response ? err.response.data : err.message
-    );
-    res.status(500).json({ error: "Failed to start deployment." });
+    console.error(err.response?.data || err.message);
+    return res.status(500).json({
+      error: "Deployment failed",
+      details: err.response?.data || err.message
+    });
   }
 });
 
-// --- Start server ---
-app.listen(PORT, () => {
-  console.log(`🚀 Server running on http://localhost:${PORT}`);
-});
+app.listen(PORT, () =>
+  console.log(`🚀 Deploy server running on http://localhost:${PORT}`)
+);
