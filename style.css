@@ -1,29 +1,28 @@
-body {
-  font-family: Arial, sans-serif;
-  background: #0a0a0a;
-  color: white;
-  text-align: center;
-  padding: 30px;
+/* style.css */
+:root{
+  --bg:#0f1720;
+  --card:#0b1220;
+  --accent:#06b6d4;
+  --primary:#10b981;
+  --muted:#9aa7b2;
+  --text:#e6f0f2;
+  --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, "Roboto Mono", "Courier New", monospace;
 }
 
-input, button {
-  padding: 10px;
-  margin: 5px;
-  border-radius: 6px;
-  border: none;
-}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0;background:linear-gradient(180deg,#071021 0%, #0b1724 100%);font-family:Inter,system-ui,Arial,Helvetica,sans-serif;color:var(--text)}
+.container{max-width:920px;margin:36px auto;padding:20px}
+header h1{margin:0 0 6px;font-size:28px;letter-spacing:-0.4px}
+.muted{color:var(--muted)}
+.card{background:var(--card);padding:18px;border-radius:12px;margin-top:18px;box-shadow:0 6px 20px rgba(2,6,23,0.6)}
+.inline{display:flex;gap:10px;align-items:center}
+input[type="text"], input[type="file"], input#username{padding:10px 12px;border-radius:8px;border:1px solid rgba(255,255,255,0.04);background:#06101a;color:var(--text);min-width:0;flex:1}
+button{border:0;padding:10px 16px;border-radius:8px;cursor:pointer}
+button.primary{background:var(--accent);color:#04111a;font-weight:600}
+button.accent{background:var(--primary);color:#042014;font-weight:700}
+button.small{background:transparent;border:1px solid rgba(255,255,255,0.06);color:var(--muted);padding:8px 10px;border-radius:8px}
+.form-row{margin-top:12px}
 
-button {
-  background: #00ff88;
-  cursor: pointer;
-}
-
-#terminal {
-  background: #111;
-  color: #0f0;
-  text-align: left;
-  padding: 20px;
-  margin-top: 20px;
-  height: 300px;
-  overflow-y: auto;
-}
+.terminal{background:#01060a;color:#b8f2d6;padding:12px;border-radius:8px;min-height:220px;max-height:420px;overflow:auto;font-family:var(--mono);font-size:13px;line-height:1.4}
+small{font-size:12px}
+footer{margin-top:20px;text-align:center}
