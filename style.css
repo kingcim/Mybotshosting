@@ -1,0 +1,29 @@
+body {
+  font-family: Arial, sans-serif;
+  background: #0a0a0a;
+  color: white;
+  text-align: center;
+  padding: 30px;
+}
+
+input, button {
+  padding: 10px;
+  margin: 5px;
+  border-radius: 6px;
+  border: none;
+}
+
+button {
+  background: #00ff88;
+  cursor: pointer;
+}
+
+#terminal {
+  background: #111;
+  color: #0f0;
+  text-align: left;
+  padding: 20px;
+  margin-top: 20px;
+  height: 300px;
+  overflow-y: auto;
+}

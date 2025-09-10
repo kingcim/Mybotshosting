@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>🚀 Deploy Space-XMD Bot</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <h1>Deploy Space-XMD Bot</h1>
+  <p>Enter GitHub username & upload creds.json</p>
+
+  <form id="deployForm" enctype="multipart/form-data">
+    <input type="text" name="username" placeholder="GitHub Username" required><br><br>
+    <input type="file" name="creds" accept=".json" required><br><br>
+    <button type="submit">Deploy Bot</button>
+  </form>
+
+  <h2>📟 Logs</h2>
+  <pre id="terminal">Waiting...</pre>
+
+  <script src="script.js"></script>
+</body>
+</html>
