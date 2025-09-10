@@ -88,8 +88,8 @@
         if (data.success) {
           output.innerHTML =
             "✅ Bot deployed successfully!<br><br>" +
-            "<b>Render Service:</b><br>" +
-            JSON.stringify(data.render, null, 2);
+            `<b>Render Dashboard:</b> <a href="https://dashboard.render.com/${data.render.service.id}" target="_blank">Open Service</a><br><br>` +
+            "<pre>" + JSON.stringify(data.render, null, 2) + "</pre>";
         } else {
           output.textContent = "❌ Failed: " + (data.error || "Unknown error");
         }

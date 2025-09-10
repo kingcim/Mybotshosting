@@ -1,17 +1,27 @@
 import express from "express";
 import axios from "axios";
 import dotenv from "dotenv";
+import path from "path";
+import { fileURLToPath } from "url";
 
 dotenv.config();
 
 const app = express();
 app.use(express.json());
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 const PORT = process.env.PORT || 3000;
 const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
 const RENDER_API_KEY = process.env.RENDER_API_KEY;
 const BASE_REPO = `${process.env.OWNER}/${process.env.REPO_NAME}`;
 const REPO_NAME = process.env.REPO_NAME;
+
+// ✅ Serve index.html from root
+app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "index.html"));
+});
 
 // Deploy endpoint
 app.post("/deploy", async (req, res) => {
@@ -40,11 +50,11 @@ app.post("/deploy", async (req, res) => {
         { headers: { Authorization: `token ${GITHUB_TOKEN}` } }
       );
 
-      // wait a bit for GitHub to process fork
+      // wait a few seconds for GitHub to create the fork
       await new Promise((resolve) => setTimeout(resolve, 5000));
     }
 
-    // STEP 3: create Render service from fork
+    // STEP 3: create Render service
     console.log(`Creating Render service for ${username}...`);
     const createService = await axios.post(
       "https://api.render.com/v1/services",
@@ -76,5 +86,5 @@ app.post("/deploy", async (req, res) => {
 });
 
 app.listen(PORT, () =>
-  console.log(`🚀 Deploy server running on http://localhost:${PORT}`)
+  console.log(`🚀 Deploy server running at http://localhost:${PORT}`)
 );
